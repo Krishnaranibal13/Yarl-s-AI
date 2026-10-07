@@ -2,18 +2,11 @@ pipeline {
     agent any
 
     environment {
-        PROJECT_NAME = 'yarls-ai'
-        COMPOSE_PROJECT_NAME = 'yarls-ai'
         COMPOSE_FILE = 'docker-compose.yml'
+        COMPOSE_PROJECT_NAME = 'yarls-ai'
     }
 
     stages {
-
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
 
         stage('Check Files') {
             steps {
@@ -24,19 +17,18 @@ pipeline {
                     echo "Project files:"
                     ls -la
 
-                    echo "Docker Compose:"
+                    echo "Checking required files..."
+
                     test -f docker-compose.yml
-
-                    echo "Backend:"
                     test -d backend
-
-                    echo "Frontend:"
                     test -d front-end
+
+                    echo "All required files found."
                 '''
             }
         }
 
-        stage('Stop Existing Containers') {
+        stage('Stop Existing Application') {
             steps {
                 sh '''
                     docker compose -f ${COMPOSE_FILE} down || true
@@ -47,7 +39,7 @@ pipeline {
         stage('Build Images') {
             steps {
                 sh '''
-                    docker compose -f ${COMPOSE_FILE} build --no-cache
+                    docker compose -f ${COMPOSE_FILE} build
                 '''
             }
         }
@@ -67,7 +59,8 @@ pipeline {
 
                     docker compose -f ${COMPOSE_FILE} ps
 
-                    echo "Running containers:"
+                    echo ""
+                    echo "Docker containers:"
                     docker ps --format "table {{.Names}}\\t{{.Status}}\\t{{.Ports}}"
                 '''
             }
@@ -76,31 +69,28 @@ pipeline {
         stage('Application Test') {
             steps {
                 sh '''
-                    echo "Testing frontend..."
+                    echo "Testing application..."
+
                     curl -f http://localhost/ || exit 1
 
-                    echo "Frontend is responding."
+                    echo "Application is responding successfully."
                 '''
             }
         }
     }
 
     post {
-
         success {
             echo 'Yarl-s-AI deployment completed successfully.'
         }
 
         failure {
             echo 'Yarl-s-AI deployment failed.'
+
             sh '''
                 docker compose -f ${COMPOSE_FILE} ps || true
                 docker compose -f ${COMPOSE_FILE} logs --tail=100 || true
             '''
-        }
-
-        always {
-            echo 'Deployment pipeline finished.'
         }
     }
 }
