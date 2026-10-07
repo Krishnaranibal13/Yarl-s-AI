@@ -13,11 +13,12 @@ services:
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-docker-dev-secret-key}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     command: >
       sh -c "python manage.py migrate &&
              gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 2 --threads 4 --timeout 120"
-    ports:
-      - "8000:8000"
+
     restart: unless-stopped
 
   frontend:
@@ -28,5 +29,5 @@ services:
     depends_on:
       - backend
     ports:
-      - "4200:80"
+      - "80:80"
     restart: unless-stopped

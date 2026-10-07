@@ -367,7 +367,7 @@ class GenerateView(APIView):
         raw_prompt = request.data.get('prompt', '')
         image = request.data.get('image', None)
         previous_html = request.data.get('previousHtml', '')
-        selected_model = request.data.get('model', 'deepseek-coder:6.7b')
+        selected_model = request.data.get('model', 'qwen2.5-coder:1.5b')
         provider_cfg = request.data.get('provider_config')  # Optional client provider config
 
         # Determine routing: provider_config (client) > server-side defaults.
@@ -603,7 +603,7 @@ class GenerateView(APIView):
 class StopGenerationView(APIView):
     def post(self, request):
         try:
-            for m in ['deepseek-coder:6.7b', 'moondream:latest', 'qwen3-vl:8b']:
+            for m in ['qwen2.5-coder:1.5b', 'moondream:latest', 'qwen3-vl:8b']:
                 ollama_request(
                     'POST',
                     '/api/generate',
@@ -659,7 +659,7 @@ class ListModelsView(APIView):
                 local_models.extend(ollama_models)
         except:
             # Fallback if Ollama is not local but we want to show the option
-            local_models.extend(['deepseek-coder:6.7b', 'qwen3-vl:8b'])
+            local_models.extend(['qwen2.5-coder:1.5b', 'qwen3-vl:8b'])
 
         cloud_models = list(dict.fromkeys(cloud_models))
         local_models = list(dict.fromkeys(local_models))
